@@ -6,7 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
-import models.LgConnectivity
+import models.Car
 import models.Schema
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import plugins.createKafkaConsumer
@@ -19,52 +19,43 @@ fun main(args: Array<String>) {
 fun Application.module() {
 
     install(ContentNegotiation) {
-
         json()
     }
 
     val config = ApplicationConfig("kafka.conf")
     val consumer: KafkaConsumer<String, String> =
-        createKafkaConsumer(config,
-            "source.public.delivery_lgconnectivitycheck")
+        createKafkaConsumer(config,"source.public.car")
     launch {
         try {
             while (true) {
-                poll(consumer)
+                pollCar(consumer)
             }
         } finally {
             consumer.apply {
                 unsubscribe()
-                // close()
             }
             log.info("consumer for ${consumer.groupMetadata().groupId()} unsubscribed and closed...")
         }
     }
+
 }
 
 val json = Json {
-    ignoreUnknownKeys = true // ignore fields in json without throwing error
-    //explicitNulls = false // in case field doesn't exist, return null
+    ignoreUnknownKeys = true // ignore fields in json that are not in object without throwing error
+    explicitNulls = false // in case field doesn't exist, return null
 }
 
-private suspend fun poll(consumer: KafkaConsumer<String, String>) =
+private suspend fun pollCar(consumer: KafkaConsumer<String, String>) =
     withContext(Dispatchers.IO) {
         consumer.poll(Duration.ofMillis(100))
             .forEach {
-                println("-----------------------")
-                println("-----------------------")
-                println("-----------------------")
-                println(it.key())
-                println(it.value())
 
                 println("-----------------------")
                 println("-----------------------")
 
-                val decodeFromString = json.decodeFromString<Schema<LgConnectivity>>(it.value())
-                println(decodeFromString.payload.data.message)
-                println(decodeFromString.payload.data.hasMoreComments)
-                println(decodeFromString.payload.data.unrealCol)
-                println("-----------------------")
+                val decodeFromString = json.decodeFromString<Schema<Car>>(it.value())
+                println(decodeFromString.payload.data)
+
                 println("-----------------------")
                 println("-----------------------")
             }
