@@ -1,0 +1,18 @@
+{
+  "name": "source-cdc",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "database.hostname": "host.docker.internal",
+    "database.port": "5432",
+    "database.user": "dummy-user",
+    "database.password": "dummy-password",
+    "database.dbname": "dummydb",
+    "plugin.name": "pgoutput",
+    "database.server.name": "source",
+    "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "table.include.list": "comma-separtated,table-name",
+    "slot.name" : "unique_slot_name"
+  }
+}
